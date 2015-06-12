@@ -1,0 +1,2 @@
+/* release date : 2015-06-12 */
+"undefined"==typeof nhn&&(nhn={}),nhn.mobile=nhn.mobile||{},nhn.mobile.search=nhn.mobile.search||{},nhn.mobile.search.test-project=nhn.mobile.search.test-project||{},nhn.mobile.search.test-project.Controller=$Class({$init:function(e){var n={elBase:"._some_selector"};this.option(n),this.option(e,{}),this.welBase=$Element(this.option("elBase")),console.log("프로젝트가 초기화가 완료되었습니다.")}}).extend(jindo.m.UIComponent);

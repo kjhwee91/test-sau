@@ -1,0 +1,35 @@
+{
+  "node": true,
+  "esnext": true,
+  "bitwise": true,
+  "camelcase": false,
+  "curly": true,
+  "eqeqeq": true,
+  "immed": true,
+  "indent": 4,
+  "latedef": true,
+  "newcap": true,
+  "noarg": true,
+  "quotmark": true,
+  "undef": true,
+  "unused": true,
+  "strict": false,
+  "expr": true,
+  "browser": true,
+  "sub": true,
+  "globals": {
+    /* naver */
+    "nhn": true,
+    "$$": false,
+    "$Class": false,
+    "$Element": false,
+    "$ElementList": false,
+    "$Fn": false,
+    "localStorage": false,
+    "jindo": false,
+    "$": false,
+    "$S" : false,
+    "$Ajax": false,
+	"$Jindo": false
+  }
+}

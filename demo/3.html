@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko"><style type="text/css" id="_jmc_no_tap_highlight_tag_"></style><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>[M] test-project</title>
+
+    <link rel="shortcut icon" href="http://sstatic.naver.net/search/favicon/favicon_140327.ico">
+
+    <!-- Release CSS -->
+    <link rel="stylesheet" href="http://view.gitlab.uit.nhncorp.com/search-ui/m-search/raw/150127-shop/css/w.css">
+    <link rel="stylesheet" href="http://view.gitlab.uit.nhncorp.com/search-ui/m-search/raw/150127-shop/10_shop/css/sp_shop.css">
+</head>
+<body class="" style="">
+
+<!--@code lang="html" title="마크업 적용 가이드" hl="auto"-->
+원하시는 Demo Code 를 작성해주세요.
+<!--code@-->
+
+
+<!--@code lang="html" title="자바스크립트 초기화 가이드" hl="auto"-->
+<script>
+    (function() {
+        // nco_area_name 설정하지 않음
+        var sJavascriptFile = "../release/nhn.mobile.search.test-project.merged.js";
+        var fnCallback = function() {
+            var initInstance = new nhn.mobile.search.test-project.Controller();
+        };
+
+        nhn.common.load_js(sJavascriptFile, fnCallback, true, 150);
+    }());
+
+    /* 통검 초기화 코드
+    nx_js_defer_load("../release/nhn.mobile.search.test-project.merged.js", function () {
+        var initInstance = new nhn.mobile.search.test-project.Controller();
+    }, 150);
+    */
+</script>
+<!--code@-->
+</body>
+</html>

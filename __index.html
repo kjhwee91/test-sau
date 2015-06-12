@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no,target-densitydpi=medium-dpi">
+  <title>AU 가이드</title>
+  <!--<link rel="stylesheet" type="text/css" href="http://ajaxui.nhncorp.com/svnview/yorky/Naver_search/__svn_sample__/guide/common.css">-->
+  <!--<link rel="stylesheet" type="text/css" href="http://ajaxui.nhncorp.com/svnview/yorky/Naver_search/__svn_sample__/guide/code.css">-->
+  <link rel="stylesheet" type="text/css" href="http://yobi.navercorp.com/Search_AU_DEV/_tool_box/files/master/src/guide/common.css">
+  <link rel="stylesheet" type="text/css" href="http://yobi.navercorp.com/Search_AU_DEV/_tool_box/files/master/src/guide/code.css">
+
+  <!-- code.js 사용법 : http://ajaxui.nhncorp.com/svnview/yorky/kn/codejs/r2/README.html -->
+  <!--<script type="text/javascript" src="http://ajaxui.nhncorp.com/svnview/yorky/Naver_search/__svn_sample__/guide/code.js?v=r2"></script>-->
+  <!--<script type="text/javascript" src="http://ajaxui.nhncorp.com/svnview/yorky/Naver_search/__svn_sample__/guide/QRCode.standalone.js"></script>-->
+  <!--<script type="text/javascript" src="http://ajaxui.nhncorp.com/svnview/yorky/Naver_search/__svn_sample__/guide/nhn.FlashObject.js"></script>-->
+  <!--<script type="text/javascript" src="http://ajaxui.nhncorp.com/svnview/yorky/Naver_search/__svn_sample__/guide/jindo.desktop.min.js?v=2.8.1"></script>-->
+  <!--<script type="text/javascript" src="http://ajaxui.nhncorp.com/svnview/yorky/Naver_search/__svn_sample__/guide/jindo.Component.js?v=1.8.0"></script>-->
+  <!--<script type="text/javascript" src="http://ajaxui.nhncorp.com/svnview/yorky/Naver_search/__svn_sample__/guide/jindo.Clipboard.js?v=1.8.0"></script>-->
+
+</head>
+
+<body class="" style="">
+<header role="banner">
+  <!-- ##### 프로젝트 명 ##### -->
+  <h1 class="hd_h1">[M] test-project(마지막 수정일 : 2015-05-29)</h1>
+
+  <!-- QR코드 -->
+  <a href="#" class="btn_qrcode" onclick="$Element('qrcode').toggle(); return false;">QRCode</a>
+  <div id="qrcode" class="ly_qrcode" style="display:none"></div>
+  <!-- //QR코드 -->
+</header>
+
+<div id="ct">
+  <section>
+
+    <!--##### 가이드 목록 ##### -->
+    <h2 class="sec_h">가이드 목록</h2>
+    <ul class="guide_list">
+
+      <!-- 가이드 목록 템플릿 : "가이드명" & "데모URL"을 수정하시면 됩니다.
+      <li>
+          <a href="#outlink" class="_sbjDetail" target="_blank">가이드 제목</a>
+          <a href="#" class="guide_btn _btnDetail">[가이드 보기]</a>
+      </li>
+      //-->
+
+      <li>
+        <a href="./demo/sample.demo.html" class="_sbjDetail" target="_blank"><span class="guide_status ing">개발중</span> OOOO 데모</a>
+        <a href="#" class="guide_btn _btnDetail">가이드 보기<span class="ic"></span></a>
+      </li>
+
+    </ul>
+
+    <!--##### 개발 JS 절대경로 보기 ##### -->
+    <h2 class="sec_h">개발 JS 절대경로 보기</h2>
+    <ul class="guide_list">
+      <li>
+        <a href="./release/nhn.mobile.search.test-project.merged.js" target="_blank">nhn.mobile.search.test-project.merged.js</a>
+      </li>
+      <li>
+        <a href="./release/nhn.mobile.search.test-project.js" target="_blank">nhn.mobile.search.test-project.js</a>
+      </li>
+    </ul>
+    <!--##### 가이드 상세 ##### -->
+    <h2 class="sec_h guide_tit _guide_title">가이드 상세 > <span id="guide_subject" style="color:#999">'가이드 목록'에서 선택하세요.</span></h2>
+
+    <div class="_ctnDetail hide">
+      <ul>
+        <li>
+          <!-- sample1 : (권장) 데모 파일에 @code를 삽입하고 XHR로 읽어와 노출하는 경우 -->
+          <code data-selector="*" data-location="./demo/sample.demo.html"></code>
+        </li>
+      </ul>
+    </div>
+
+    <!--##### 기타 추가할 사항이 있으면 추가하셔도 됩니다. 포멧은 자유입니다. ##### --
+          <!--
+          <h2 class="sec_h">section 추가</h2>
+          <ul>
+              <li><a href="#" target="_blank">link1</a></li>
+              <li><a href="#" target="_blank">link2</a></li>
+          </ul>
+          //-->
+
+    <!--##### 참고 자료 ##### -->
+    <h2 class="sec_h">참고 자료</h2>
+    <ul>
+      <li><a href="http://dev.ui.naver.com/svnview/m.search/contents/new_lnk_uio/trunk/06_lnk00.php"
+             target="_blank"> 공통 마크업 페이지</a></li>
+    </ul>
+
+  </section>
+</div>
+<footer role="contentinfo">
+  <dl>
+    <!-- ##### 담당자 정보(가능하면 관련부서도 모두 적어주세요.) ##### -->
+    <dt><b>기획</b></dt>
+    <dd>홍길동</dd>
+    <dd>&nbsp;|&nbsp;</dd>
+    <dt><b>마크업</b></dt>
+    <dd>홍길동</dd>
+    <dd>&nbsp;|&nbsp;</dd>
+    <dt><b>개발</b></dt>
+    <dd>홍길동</dd>
+    <dd>&nbsp;|&nbsp;</dd>
+    <dt><b>AU</b></dt>
+    <dd>홍길동</dd>
+    <dt class="u_hc">관련 링크</dt>
+    <dd>
+      <a href="http://jindo.nhncorp.com/ajaxui_home/" class="ft_a" target="_blank">AjaxUI Home</a>|
+      <a href="http://jindo.nhncorp.com" class="ft_a" target="_blank">jindo Home</a>
+    </dd>
+  </dl>
+</footer>
+
+</body>
+<!--<script type="text/javascript" src="http://ajaxui.nhncorp.com/svnview/yorky/Naver_search/__svn_sample__/guide/main.js?v1.0.1"></script>-->
+<script type="text/javascript" src="http://yobi.navercorp.com/Search_AU_DEV/_tool_box/files/master/release/nhn.sau.toolbox.guide.js"></script>
+</html>
