@@ -38,7 +38,7 @@ gulp.task('bs', function () {
 	gulp.watch("./src/**/*.js", ['build', browserSync.reload]);
 });
 
-gulp.task('default', ['build', 'bs']);
+gulp.task('default', ['nx_load','build', 'bs']);
 
 // Build Tasks
 gulp.task('build', ['lint'], function () {
@@ -469,31 +469,68 @@ gulp.task('release', ['build'], function () {
 
 
 
-
-
-
-
-
 var async = require('async');
 
 gulp.task('nx_load', function(){
-	fs.readFile('demo/.nx_load', function(err, data){
+	fs.readFile('.nx_load', function(err, data){
 		if(err){
 			initialNxFile();
 		} else {
 			// data 에서 nx url 가져오기
-			console.log(data);
+			checkNxVersion(JSON.parse(data.toString()));
 		}
 	});
 });
 
+function checkNxVersion(htNxData){
+	crawlingNxFile(function(err, sCrawledNx){
+		if(htNxData.sNxFile !== sCrawledNx){
+			initialNxFile();
+			return ;
+		}
+		var htDemoFile = htNxData.htFile;
+		fs.readdir('demo/', function(err, files){
+			var newestNx = [];
+			var oldNx = [];
+			files.forEach(function(file){
+				if(htDemoFile[file].sNxUrl === sCrawledNx){
+					newestNx.push(sCrawledNx);
+				} else {
+					oldNx.push(sCrawledNx);
+				}
+			});
+			updateNxFile(newestNx, oldNx, sCrawledNx);
+		});
+	});
+};
+
+function updateNxFile(aNewestNx, aOldNx, sCrawledNx){
+	insertNxFile(aOldNx, sCrawledNx, function(aResult){
+		var aNxInsertedFile = aResult.map(function(v){
+			return {'sFileName' : v.file, 'sNxUrl' : sCrawledNx};
+		});
+		aNewestNx.map(function(file){
+			aNxInsertedFile.push({'sFileName' : 'demo/'+file, 'sNxUrl' : sCrawledNx});
+		});
+		var htDemoFile = {};
+		aNxInsertedFile.forEach(function(v){
+			htDemoFile[v.sFileName] = {'sNxUrl' : v.sNxUrl};
+		});
+		setNxDataFile({'sNxUrl' : sCrawledNx, 'htFile' : htDemoFile});
+	});
+};
+
 function initialNxFile(){
+	var sCrawledNx = "";
+	var exsistNx = [];
+
 	async.waterfall([
 		function(callback){
-			crawlingNxFileInWaterfall(callback);
+			crawlingNxFile(callback);
 		},
 		// demo 에서 nx 있는지 확인하기
 		function(sNxFile, callback){
+			sCrawledNx = sNxFile;
 			fs.readdir('demo/', function(err, files){
 				var aFnParallel = files.map(function(sFile){
 					return checkNxInDemoFile.bind(null, sFile);
@@ -507,47 +544,58 @@ function initialNxFile(){
 			var noNx = [];
 			aResults.forEach(function(htResult){
 				if(htResult.isExist && htResult.sNxUrl === sNxFile){
-					console.log(htResult.file);
+					exsistNx.push(htResult.file);
 				} else {
 					noNx.push(htResult.file);
 				}
 			});
 			insertNxFile(noNx, sNxFile, callback);
+		},
+		function(aResult){
+			var aNxInsertedFile = aResult.map(function(v){
+				return {'sFileName' : v.file, 'sNxUrl' : sCrawledNx};
+			});
+			exsistNx.map(function(file){
+				aNxInsertedFile.push({'sFileName' : 'demo/'+file, 'sNxUrl' : sCrawledNx});
+			});
+			var htDemoFile = {};
+			aNxInsertedFile.forEach(function(v){
+				htDemoFile[v.sFileName] = {'sNxUrl' : v.sNxUrl};
+			});
+			setNxDataFile({'sNxUrl' : sCrawledNx, 'htFile' : htDemoFile});
 		}
 	]);
 };
 
+function setNxDataFile(data){
+	fs.writeFile('.nx_load', JSON.stringify(data));
+}
+
 function insertNxFile(targetFileList, sNxUrl, callback){
-	//fs.readdir('demo/', function(err, files){
-	//	var aFnParallel = files.map(function(sFile){
-	//		return checkNxInDemoFile.bind(null, sFile);
-	//	});
-	//	async.parallel(aFnParallel,function(err, result){
-	//		callback(null, result, sNxFile);
-	//	});
-	//});
-
 	var aFnParallel = targetFileList.map(function(target){
-		var buffer = new Buffer('\<script type\=\"text\/javascript\"\>' + sNxUrl + '\<\/script\>');
-
 		return function(demoFile, nextCallback){
-			fs.readFile(demoFile, function(err, html){
-				var offset = html.toString().indexOf('\<\/head\>');
-				fs.write(demoFile, buffer, offset, buffer.length, null, function(){
-
+			var buffer = new Buffer('\<script type\=\"text\/javascript\" src=\"' + sNxUrl + '\">\<\/script\>\n');
+			fs.readFile(demoFile, function(err, bf){
+				var html = bf.toString();
+				var offset = html.indexOf('</head>');
+				var bodyBuffer = new Buffer(html.substring(offset));
+				var writeStream = fs.createWriteStream(demoFile,{flags: 'r+', mode: 0777, start: offset});
+				writeStream.write(buffer + bodyBuffer, function(err){
+					if(err){
+						nextCallback(null, {"file" : demoFile, "isSuccess" : false});
+					} else {
+						nextCallback(null, {"file" : demoFile, "isSuccess" : true});
+					}
 				});
 			});
-			//html.toString().match(/<head>(?:.|\n|\r)+?<\/head>/g)[0];
 		}.bind(null, 'demo/'+target);
 	});
 	async.parallel(aFnParallel,function(err, result){
-
+		callback(null, result);
 	});
-
-
 };
 
-function crawlingNxFileInWaterfall(callback){
+function crawlingNxFile(callback){
 	new crawler({
 		"forceUTF8" : true,
 		"callback" : function (error, sCrawlerResult) {
@@ -597,67 +645,3 @@ function checkNxInDemoFile(demoFile, nextCallback){
 		}
 	});
 };
-
-
-
-//<head>(?:.|\n|\r)+?<\/head>
-gulp.task('set_nx', function () {
-	var demoDir = __dirname + '/demo/';
-	fs.readdir(demoDir, function(err, files){
-		files.forEach(function(file, index){
-			fs.readFile(demoDir+file, function(error, html){
-				var rawHtml = html.toString().match(/<head>(?:.|\n|\r)+?<\/head>/g)[0].replace('<head>','').replace('</head>','');
-				var handler = new htmlparser.DefaultHandler(function (error, aDom) {
-					if (error){
-
-					} else {
-						aDom.forEach(function(htDom){
-							if(htDom.name ==='script' && htDom.attribs.type ==='text/javascript'){
-								var urlReg = /https:\/\/m.search.naver.com\/acao\/js\/\d+\/nx_\d+.js/g
-								var nx_ = htDom.attribs.src.match(urlReg)[0];
-								console.log(nx_);
-							}
-						});
-					}
-				},{
-					ignoreWhitespace: true
-				});
-				var parser = new htmlparser.Parser(handler);
-				parser.parseComplete(rawHtml);
-			});
-		});
-	});
-});
-
-
-
-gulp.task('demo_nx', ['get_nx', 'set_nx']);
-
-gulp.task('get_nx', function () {
-	var c = new crawler({
-		"forceUTF8" : true,
-		"callback" : function (error, result) {
-			var body = result.body;
-			var urlReg = /\/\/m.search.naver.com\/acao\/js\/\d+\/nx_\d+.js/g
-			var nx_ = "https:" + body.match(urlReg)[0];
-			console.log(nx_);
-		}
-	});
-
-	c.queue([{
-		uri: 'https://m.search.naver.com/search.naver?where=m&sm=mtp_lve&query=test',
-	}]);
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
