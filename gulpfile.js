@@ -15,13 +15,23 @@ var clean = require('gulp-clean');
 var sftp = require('gulp-sftp');
 var prompt = require('gulp-prompt');
 var gutil = require('gulp-util');
-//var gulpsync = require('gulp-sync')(gulp);
+var gulpsync = require('gulp-sync')(gulp);
 var mkdirp = require('mkdirp');
 var SSH2Utils = require('ssh2-utils');
 var moment = require('moment');
 var row2arr = require('row2arr');
+var through = require('through');
+var open = require('gulp-open');
+
+var stream = require('stream');
+var codeInjection = require('code-injection');
+var cheerio = require('cheerio');
+
 var crawler = require("crawler");
 var htmlparser = require("htmlparser");
+var async = require('async');
+var FindFiles = require("node-find-files");
+
 
 // Develop Tasks
 gulp.task('bs', function () {
@@ -437,165 +447,21 @@ gulp.task('release', ['build'], function () {
 
 
 
-
-
-//var gulp = require('gulp');
-//var uglify = require('gulp-uglifyjs');
-//var concat = require('gulp-concat');
-//var fs = require('fs');
-//var glob = require('glob');
-//var rename = require('gulp-rename');
-//var _ = require('underscore');
-//var browserSync = require('browser-sync');
-//var path = require('path');
-//var header = require('gulp-header');
-//var jshint = require('gulp-jshint');
-//var karma = require('karma').server;
-//var jsdoc = require("gulp-jsdoc");
-//var clean = require('gulp-clean');
-//var sftp = require('gulp-sftp');
-//var prompt = require('gulp-prompt');
-//var gutil = require('gulp-util');
-////var gulpsync = require('gulp-sync')(gulp);
-//var mkdirp = require('mkdirp');
-//var SSH2Utils = require('ssh2-utils');
-//var moment = require('moment');
-//var row2arr = require('row2arr');
-//var crawler = require("crawler");
-//var htmlparser = require("htmlparser");
-
-
-
-
-
-
-var async = require('async');
-
+/**
+ * 데모에 nx_XXX 파일을 셋팅하는 작업 실행
+ **/
 gulp.task('nx_load', function(){
-	fs.readFile('.nx_load', function(err, data){
-		if(err){
-			initialNxFile();
-		} else {
-			// data 에서 nx url 가져오기
-			checkNxVersion(JSON.parse(data.toString()));
+	getNXFromCrawlingSearchResult(function(err, crawling){
+		if(!err){
+			settingNXAtDemoFiles(crawling);
 		}
 	});
 });
 
-function checkNxVersion(htNxData){
-	crawlingNxFile(function(err, sCrawledNx){
-		if(htNxData.sNxFile !== sCrawledNx){
-			initialNxFile();
-			return ;
-		}
-		var htDemoFile = htNxData.htFile;
-		fs.readdir('demo/', function(err, files){
-			var newestNx = [];
-			var oldNx = [];
-			files.forEach(function(file){
-				if(htDemoFile[file].sNxUrl === sCrawledNx){
-					newestNx.push(sCrawledNx);
-				} else {
-					oldNx.push(sCrawledNx);
-				}
-			});
-			updateNxFile(newestNx, oldNx, sCrawledNx);
-		});
-	});
-};
+/** nx_XXX 파일 셋팅 함수 시작 **/
 
-function updateNxFile(aNewestNx, aOldNx, sCrawledNx){
-	insertNxFile(aOldNx, sCrawledNx, function(aResult){
-		var aNxInsertedFile = aResult.map(function(v){
-			return {'sFileName' : v.file, 'sNxUrl' : sCrawledNx};
-		});
-		aNewestNx.map(function(file){
-			aNxInsertedFile.push({'sFileName' : 'demo/'+file, 'sNxUrl' : sCrawledNx});
-		});
-		var htDemoFile = {};
-		aNxInsertedFile.forEach(function(v){
-			htDemoFile[v.sFileName] = {'sNxUrl' : v.sNxUrl};
-		});
-		setNxDataFile({'sNxUrl' : sCrawledNx, 'htFile' : htDemoFile});
-	});
-};
-
-function initialNxFile(){
-	var sCrawledNx = "";
-	var exsistNx = [];
-
-	async.waterfall([
-		function(callback){
-			crawlingNxFile(callback);
-		},
-		// demo 에서 nx 있는지 확인하기
-		function(sNxFile, callback){
-			sCrawledNx = sNxFile;
-			fs.readdir('demo/', function(err, files){
-				var aFnParallel = files.map(function(sFile){
-					return checkNxInDemoFile.bind(null, sFile);
-				});
-				async.parallel(aFnParallel,function(err, result){
-					callback(null, result, sNxFile);
-				});
-			});
-		},
-		function(aResults, sNxFile, callback){
-			var noNx = [];
-			aResults.forEach(function(htResult){
-				if(htResult.isExist && htResult.sNxUrl === sNxFile){
-					exsistNx.push(htResult.file);
-				} else {
-					noNx.push(htResult.file);
-				}
-			});
-			insertNxFile(noNx, sNxFile, callback);
-		},
-		function(aResult){
-			var aNxInsertedFile = aResult.map(function(v){
-				return {'sFileName' : v.file, 'sNxUrl' : sCrawledNx};
-			});
-			exsistNx.map(function(file){
-				aNxInsertedFile.push({'sFileName' : 'demo/'+file, 'sNxUrl' : sCrawledNx});
-			});
-			var htDemoFile = {};
-			aNxInsertedFile.forEach(function(v){
-				htDemoFile[v.sFileName] = {'sNxUrl' : v.sNxUrl};
-			});
-			setNxDataFile({'sNxUrl' : sCrawledNx, 'htFile' : htDemoFile});
-		}
-	]);
-};
-
-function setNxDataFile(data){
-	fs.writeFile('.nx_load', JSON.stringify(data));
-}
-
-function insertNxFile(targetFileList, sNxUrl, callback){
-	var aFnParallel = targetFileList.map(function(target){
-		return function(demoFile, nextCallback){
-			var buffer = new Buffer('\<script type\=\"text\/javascript\" src=\"' + sNxUrl + '\">\<\/script\>\n');
-			fs.readFile(demoFile, function(err, bf){
-				var html = bf.toString();
-				var offset = html.indexOf('</head>');
-				var bodyBuffer = new Buffer(html.substring(offset));
-				var writeStream = fs.createWriteStream(demoFile,{flags: 'r+', mode: 0777, start: offset});
-				writeStream.write(buffer + bodyBuffer, function(err){
-					if(err){
-						nextCallback(null, {"file" : demoFile, "isSuccess" : false});
-					} else {
-						nextCallback(null, {"file" : demoFile, "isSuccess" : true});
-					}
-				});
-			});
-		}.bind(null, 'demo/'+target);
-	});
-	async.parallel(aFnParallel,function(err, result){
-		callback(null, result);
-	});
-};
-
-function crawlingNxFile(callback){
+// 네이버 검색 결과에서 nx 버전 가져오기
+function getNXFromCrawlingSearchResult(callback){
 	new crawler({
 		"forceUTF8" : true,
 		"callback" : function (error, sCrawlerResult) {
@@ -605,43 +471,91 @@ function crawlingNxFile(callback){
 				// 네이버 검색 결과에서 크롤링한 html 에서 최신 nx 파일 추출
 				var body = sCrawlerResult.body;
 				var urlReg = /\/\/m.search.naver.com\/acao\/js\/\d+\/nx_\d+.js/g
-				var nx_file = "https:" + body.match(urlReg)[0];
-				callback(null, nx_file);
+				var sCrawlingNX = "https:" + body.match(urlReg)[0];
+				callback(null, sCrawlingNX);
 			}
 		}
 	}).queue([{
-		uri: 'https://m.search.naver.com/search.naver?where=m&sm=mtp_lve&query=test',
-	}]);
+			uri: 'https://m.search.naver.com/search.naver?where=m&sm=mtp_lve&query=test'
+		}]);
 };
 
-function checkNxInDemoFile(demoFile, nextCallback){
-	fs.readFile('demo/' + demoFile, function (error, html) {
+// 데모 파일에 nx 셋팅하기
+function settingNXAtDemoFiles(sCrawlingNX){
+	var files = [];
+	var oFinder = new FindFiles({
+		"rootFolder" : "demo/",
+		"filterFunction" : function (path) {
+			return path.indexOf('.html')>0;
+		}
+	}).on("match", function(path){
+			// demo/XXX/XXX... -> XXX/XXX...
+			files.push(path.substr(5,path.length-1));
+	}).on("complete", function() {
+		var aFnParallel = files.map(function(sFile){
+			return checkNXVersion.bind(null, sFile, sCrawlingNX);
+		});
+		async.parallel(aFnParallel,function(err, result){
+			updateNXVersion(result, sCrawlingNX);
+		});
+	});
+	oFinder.startSearch();
+};
+
+// 데모 파일에 있는 nx 버전 확인하기
+function checkNXVersion(sFile, sCrawlingNX, nextCallback){
+	fs.readFile('demo/' + sFile, function (error, html) {
 		if (!error) {
-			var header = html.toString().match(/<head>(?:.|\n|\r)+?<\/head>/g)[0].replace('<head>', '').replace('</head>', '');
-			var parser = new htmlparser.Parser(new htmlparser.DefaultHandler(function (error, aDom) {
-				if (!error) {
-					var isExist = false;
-					var sNx = null;
-					aDom.forEach(function (htDom) {
-						if (htDom.name === 'script' && htDom.attribs.type === 'text/javascript') {
-							var urlReg = /https:\/\/m.search.naver.com\/acao\/js\/\d+\/nx_\d+.js/g;
-							var aMatch = htDom.attribs.src.match(urlReg);
-							if (aMatch !== null && aMatch.length > 0) {
-								isExist = true;
-								sNx = aMatch[0];
-							}
-						}
-					});
-					var htResult = {};
-					htResult.file = demoFile;
-					htResult.isExist = isExist;
-					htResult.sNxUrl = sNx;
-					nextCallback(null, htResult);
+			var htScript = cheerio.load(html)("head > script");
+			var isLatest = false;
+			var nx_url = null;
+			if(htScript.length>0){
+				for(var i=0 ; i<htScript.length ; i++){
+					var script = htScript[i];
+					var src = script.attribs.src;
+					var type = script.attribs.type;
+					if(src === sCrawlingNX && type === "text/javascript"){
+						isLatest = true;
+						nx_url = sCrawlingNX;
+					}
 				}
-			}, {
-				ignoreWhitespace: true
-			}));
-			parser.parseComplete(header);
+			}
+			nextCallback(null, { 'file':sFile, 'isExist':isLatest, 'nx_url':nx_url });
 		}
 	});
 };
+
+// 데모 파일에 있는 nx 버전 업데이트 하기
+function updateNXVersion(aResult, sCrawlingNX){
+	var aFnParallel = [];
+	aResult.forEach(function(htDemo){
+		if(htDemo.nx_url === null){
+			var script = '\t\<\!\-\-latest nx file\-\-\>\n\t\<script type\=\"text\/javascript\" src=\"' + sCrawlingNX + '\">\<\/script\>\n';
+			aFnParallel.push(insertNXScriptTag.bind(null, htDemo.file, script));
+		}
+	});
+	async.parallel(aFnParallel,function(err){
+		if(err){
+			console.log("cannot update nx_XXXX");
+		}
+	});
+};
+
+// 데모 파일에 스크립트 삽입하기
+function insertNXScriptTag(sFile, script, nextCallback){
+	var scriptBuffer = new Buffer(script);
+	fs.readFile('demo/'+sFile, function(err, buf){
+		var html = buf.toString();
+		var offset = html.indexOf('</head>');
+		var bodyBuffer = new Buffer(html.substring(offset));
+		var writeStream = fs.createWriteStream('demo/'+sFile,{flags: 'r+', mode: 0777, start: offset});
+		writeStream.write(scriptBuffer + bodyBuffer, function(err){
+			if(err){
+				nextCallback(null, {"file" : sFile, "isSuccess" : false});
+			} else {
+				nextCallback(null, {"file" : sFile, "isSuccess" : true});
+			}
+		});
+	});
+};
+/** nx_XXX 파일 셋팅 함수 끝 **/

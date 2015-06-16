@@ -16,7 +16,8 @@ nhn.mobile.search.test-project = nhn.mobile.search.test-project || {};
  * @fileOverview 프로젝트 > 모듈 > 컨트롤러
  * @author AU개발랩
  */
-nhn.mobile.search.test-project.Controller = $Class(/** @lends nhn.mobile.search.test-project.Controller.prototype */{
+/** @lends nhn.mobile.search.test-project.Controller.prototype */
+nhn.mobile.search.testproject.Controller = $Class({
 
 	/**
 	 * nhn.mobile.search.test-project.Controller 클래스의 인스턴스를 생성한다.

@@ -5,6 +5,7 @@
     "browser-sync": "*",
     "glob": "*",
     "gulp": "^3.8.11",
+    "gulp-browserify": "^0.5.1",
     "gulp-clean": "*",
     "gulp-concat": "*",
     "gulp-connect": "*",
@@ -30,9 +31,14 @@
     "moment": "^2.10.2",
     "ssh2-connect": "0.0.6",
     "ssh2-utils": "^1.0.7",
+    "gulp-open": "*",
+    "through": "^2.3.7",
     "row2arr": "*",
+    "cheerio": "^0.19.0",
+    "code-injection": "^0.1.0",
     "crawler" : "*",
     "htmlparser" : "*",
-    "async" : "*"
+    "async" : "*",
+    "node-find-files" : "*"
   }
 }
